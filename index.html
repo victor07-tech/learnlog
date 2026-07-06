@@ -1,0 +1,411 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8" />
+<meta name="viewport" content="width=device-width, initial-scale=1.0" />
+<title>learnlog · publish writeups the honest way</title>
+<style>
+  :root {
+    --bg: #0d1117; --panel: #161b22; --border: #30363d; --text: #e6edf3;
+    --muted: #8b949e; --accent: #2f81f7; --green: #238636; --green-h: #2ea043;
+    --danger: #f85149; --input: #0d1117;
+  }
+  * { box-sizing: border-box; }
+  body {
+    margin: 0; font-family: -apple-system, BlinkMacSystemFont, "Segoe UI", Helvetica, Arial, sans-serif;
+    background: var(--bg); color: var(--text); line-height: 1.5;
+  }
+  .wrap { max-width: 900px; margin: 0 auto; padding: 24px 16px 64px; }
+  h1 { font-size: 22px; margin: 0 0 4px; }
+  h1 .dot { color: var(--accent); }
+  .sub { color: var(--muted); margin: 0 0 24px; font-size: 14px; }
+  .panel { background: var(--panel); border: 1px solid var(--border); border-radius: 10px; padding: 16px; margin-bottom: 16px; }
+  .panel h2 { font-size: 14px; margin: 0 0 12px; color: var(--muted); text-transform: uppercase; letter-spacing: .04em; }
+  label { display: block; font-size: 13px; margin: 10px 0 4px; color: var(--muted); }
+  input, select, textarea {
+    width: 100%; background: var(--input); color: var(--text); border: 1px solid var(--border);
+    border-radius: 6px; padding: 8px 10px; font-size: 14px; font-family: inherit;
+  }
+  input:focus, select:focus, textarea:focus { outline: none; border-color: var(--accent); }
+  textarea { min-height: 340px; font-family: ui-monospace, SFMono-Regular, Menlo, monospace; font-size: 13px; resize: vertical; }
+  .row { display: flex; gap: 12px; flex-wrap: wrap; }
+  .row > div { flex: 1; min-width: 160px; }
+  .btn {
+    background: var(--green); color: #fff; border: 1px solid rgba(240,246,252,.1); border-radius: 6px;
+    padding: 9px 16px; font-size: 14px; font-weight: 600; cursor: pointer;
+  }
+  .btn:hover { background: var(--green-h); }
+  .btn.secondary { background: transparent; color: var(--text); border-color: var(--border); }
+  .btn.secondary:hover { background: #21262d; }
+  .btn:disabled { opacity: .5; cursor: not-allowed; }
+  .actions { display: flex; gap: 10px; align-items: center; margin-top: 12px; flex-wrap: wrap; }
+  .hint { font-size: 12px; color: var(--muted); margin-top: 6px; }
+  .hint a { color: var(--accent); }
+  #status { margin-top: 14px; font-size: 13px; white-space: pre-wrap; padding: 10px; border-radius: 6px; display: none; }
+  #status.ok { display: block; background: rgba(35,134,54,.15); border: 1px solid var(--green); }
+  #status.err { display: block; background: rgba(248,81,73,.12); border: 1px solid var(--danger); color: #ffb1ab; }
+  #status.info { display: block; background: #21262d; border: 1px solid var(--border); }
+  .token-row { display: flex; gap: 8px; }
+  .token-row input { flex: 1; }
+  code { background: #21262d; padding: 1px 5px; border-radius: 4px; font-size: 12px; }
+</style>
+</head>
+<body>
+<div class="wrap">
+  <h1>learnlog<span class="dot">.</span></h1>
+  <p class="sub">Write your TryHackMe / HackTheBox / LeetCode writeup, click publish — it commits &amp; pushes to your GitHub repo and updates the index. You write the words; it handles the plumbing. Honest by design: it won't publish an unfilled template.</p>
+
+  <div class="panel">
+    <h2>1 · Connect GitHub</h2>
+    <label>Personal access token (fine-grained, Contents: read/write on your repo)</label>
+    <div class="token-row">
+      <input id="token" type="password" placeholder="github_pat_..." autocomplete="off" />
+      <button class="btn secondary" id="saveToken">Save</button>
+    </div>
+    <p class="hint">Your token stays in this browser only (localStorage) — it's sent directly to GitHub, never to anyone else. Create one at <a href="https://github.com/settings/tokens?type=beta" target="_blank" rel="noopener">github.com/settings/tokens</a> → fine-grained → your repo → Repository permissions → Contents: Read and write.</p>
+    <div class="row" style="margin-top:12px">
+      <div>
+        <label>Owner (your username)</label>
+        <input id="owner" placeholder="victor07-tech" />
+      </div>
+      <div>
+        <label>Repository</label>
+        <input id="repo" placeholder="learnlog" />
+      </div>
+      <div>
+        <label>Branch</label>
+        <input id="branch" placeholder="main" value="main" />
+      </div>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>2 · New entry</h2>
+    <div class="row">
+      <div>
+        <label>Platform</label>
+        <select id="platform">
+          <option value="thm">TryHackMe</option>
+          <option value="htb">HackTheBox</option>
+          <option value="leetcode">LeetCode</option>
+          <option value="generic">General</option>
+        </select>
+      </div>
+      <div>
+        <label>Title</label>
+        <input id="title" placeholder="Blue" />
+      </div>
+      <div>
+        <label>Difficulty / level</label>
+        <input id="difficulty" placeholder="Easy" />
+      </div>
+    </div>
+    <div class="row" style="margin-top:4px">
+      <div>
+        <label>Topics / tags (comma-separated)</label>
+        <input id="topics" placeholder="windows, smb, eternalblue" />
+      </div>
+      <div>
+        <label>Link (optional)</label>
+        <input id="url" placeholder="https://tryhackme.com/room/blue" />
+      </div>
+    </div>
+    <div class="actions">
+      <button class="btn secondary" id="loadTemplate">Load template →</button>
+      <span class="hint" id="pathHint"></span>
+    </div>
+  </div>
+
+  <div class="panel">
+    <h2>3 · Write it</h2>
+    <textarea id="editor" placeholder="Load the template, then write your real notes here…"></textarea>
+    <div class="actions">
+      <button class="btn" id="publish">Publish to GitHub</button>
+      <span class="hint">Refuses to publish if template placeholders remain.</span>
+    </div>
+    <div id="status"></div>
+  </div>
+</div>
+
+<script>
+const $ = (id) => document.getElementById(id);
+const API = "https://api.github.com";
+
+const PLATFORMS = {
+  thm:      { name: "TryHackMe",  url: (s) => `https://tryhackme.com/room/${s}` },
+  htb:      { name: "HackTheBox", url: (s) => `https://app.hackthebox.com/machines/${s}` },
+  leetcode: { name: "LeetCode",   url: (s) => `https://leetcode.com/problems/${s}/` },
+  generic:  { name: "General",    url: () => "" },
+};
+
+const PLACEHOLDERS = ["<what it covers","<concept","<approach","<one thing","<your notes",
+  "<intuition","<complexity","<what tripped","<recon","<foothold","<privilege","<summary"];
+
+const TEMPLATES = {
+  thm: `# <title>
+
+**Platform:** <platform>
+**Link:** <url>
+**Date:** <date>
+**Difficulty:** <difficulty>
+**Topics:** <topics>
+
+---
+
+## What it covers
+
+<what it covers — 2-3 sentences on the room and the skill it teaches>
+
+## Concepts I learned
+
+- <concept — in my own words>
+
+## Tools used
+
+nmap, ... — one line each on what it was for.
+
+## My approach (high level)
+
+<approach — explain the WHY, not the flags/answers>
+
+## Key takeaway
+
+<one thing I'll remember>
+
+## Where I got stuck
+
+<what tripped me up>
+`,
+  htb: `# <title>
+
+**Platform:** <platform>
+**Link:** <url>
+**Date:** <date>
+**Difficulty:** <difficulty>
+**Topics:** <topics>
+
+---
+
+## Overview
+
+<what it covers — 2-3 sentences on the machine>
+
+## Recon
+
+<recon — what I enumerated and what stood out>
+
+## Foothold
+
+<foothold — the vulnerability class and the idea behind exploiting it>
+
+## Privilege escalation
+
+<privilege escalation — the technique, explained conceptually>
+
+## Concepts I learned
+
+- <concept — in my own words>
+
+## Key takeaway
+
+<one thing I'll remember>
+
+> Educational — explain the approach, don't dump flags.
+`,
+  leetcode: `# <title>
+
+**Platform:** <platform>
+**Link:** <url>
+**Date:** <date>
+**Difficulty:** <difficulty>
+**Topics:** <topics>
+
+---
+
+## Problem
+
+<summary — restate the problem in your own words>
+
+## Intuition
+
+<intuition — the key insight>
+
+## Approach
+
+<approach — the algorithm, step by step>
+
+## Complexity
+
+<complexity — Time O(?), Space O(?), and why>
+
+## Solution
+
+\`\`\`python
+# your solution here
+\`\`\`
+
+## What I learned
+
+<what tripped me up, or the pattern I'll reuse>
+`,
+  generic: `# <title>
+
+**Platform:** <platform>
+**Link:** <url>
+**Date:** <date>
+**Topics:** <topics>
+
+---
+
+## What I studied
+
+<your notes — what this was about>
+
+## Key points
+
+- <concept — in my own words>
+
+## Takeaway
+
+<one thing I'll remember>
+`,
+};
+
+function slugify(t){ return t.trim().toLowerCase().split(/\s+/).join("-").replace(/_/g,"-").replace(/[^a-z0-9-]/g,""); }
+function today(){ return new Date().toISOString().slice(0,10); }
+function b64(str){ return btoa(unescape(encodeURIComponent(str))); }
+function unb64(str){ return decodeURIComponent(escape(atob(str))); }
+
+function setStatus(msg, kind){ const s=$("status"); s.className=kind; s.textContent=msg; }
+
+// persistence
+["token","owner","repo","branch"].forEach(k=>{
+  const v=localStorage.getItem("ll_"+k); if(v) $(k).value=v;
+});
+$("saveToken").onclick=()=>{ localStorage.setItem("ll_token",$("token").value.trim()); setStatus("Token saved in this browser.","info"); };
+["owner","repo","branch"].forEach(k=> $(k).addEventListener("change",()=>localStorage.setItem("ll_"+k,$(k).value.trim())));
+
+function fillTemplate(){
+  const p=$("platform").value;
+  const tmpl=TEMPLATES[p];
+  const url=$("url").value.trim() || (PLATFORMS[p].url(slugify($("title").value))||"");
+  return tmpl
+    .replaceAll("<title>", $("title").value.trim()||"<title>")
+    .replaceAll("<platform>", PLATFORMS[p].name)
+    .replaceAll("<url>", url)
+    .replaceAll("<date>", today())
+    .replaceAll("<difficulty>", $("difficulty").value.trim()||"—")
+    .replaceAll("<topics>", $("topics").value.trim()||"—");
+}
+
+function updatePathHint(){
+  const slug=slugify($("title").value);
+  $("pathHint").textContent = slug ? `→ entries/${$("platform").value}/${slug}.md` : "";
+}
+["title","platform"].forEach(id=>$(id).addEventListener("input",updatePathHint));
+
+$("loadTemplate").onclick=()=>{
+  if(!$("title").value.trim()){ setStatus("Enter a title first.","err"); return; }
+  $("editor").value=fillTemplate();
+  updatePathHint();
+  setStatus("Template loaded. Now write your real notes, then Publish.","info");
+};
+
+function insertIndexRow(readme, row){
+  const lines=readme.split("\n");
+  const isSep=(s)=> s.includes("|") && s.includes("-") &&
+    s.replace(/[|\-:\s]/g,"")==="";
+  for(let i=0;i<lines.length;i++){
+    const low=lines[i].toLowerCase();
+    if(lines[i].trimStart().startsWith("|") && low.includes("date") &&
+       (low.includes("title")||low.includes("room")||low.includes("machine"))){
+      if(i+1<lines.length && isSep(lines[i+1])){
+        lines.splice(i+2,0,row);
+        return { text: lines.join("\n"), ok: true };
+      }
+    }
+  }
+  return { text: readme, ok: false };
+}
+
+async function gh(path, opts){
+  const res=await fetch(API+path,{
+    ...opts,
+    headers:{
+      "Authorization":"Bearer "+$("token").value.trim(),
+      "Accept":"application/vnd.github+json",
+      "X-GitHub-Api-Version":"2022-11-28",
+      ...(opts&&opts.headers||{})
+    }
+  });
+  return res;
+}
+
+async function getFile(owner,repo,path,branch){
+  const res=await gh(`/repos/${owner}/${repo}/contents/${path}?ref=${branch}`,{method:"GET"});
+  if(res.status===404) return null;
+  if(!res.ok) throw new Error(`GET ${path}: ${res.status} ${await res.text()}`);
+  return await res.json();
+}
+
+async function putFile(owner,repo,path,branch,content,message,sha){
+  const body={ message, content: b64(content), branch };
+  if(sha) body.sha=sha;
+  const res=await gh(`/repos/${owner}/${repo}/contents/${path}`,{method:"PUT",body:JSON.stringify(body)});
+  if(!res.ok) throw new Error(`PUT ${path}: ${res.status} ${await res.text()}`);
+  return await res.json();
+}
+
+$("publish").onclick=async()=>{
+  const token=$("token").value.trim(), owner=$("owner").value.trim(),
+        repo=$("repo").value.trim(), branch=$("branch").value.trim()||"main";
+  const platform=$("platform").value, title=$("title").value.trim();
+  const content=$("editor").value;
+  const slug=slugify(title);
+
+  if(!token){ setStatus("Add your GitHub token first.","err"); return; }
+  if(!owner||!repo){ setStatus("Fill in owner and repository.","err"); return; }
+  if(!title){ setStatus("Enter a title.","err"); return; }
+  if(!content.trim()){ setStatus("Write your notes first.","err"); return; }
+  const left=PLACEHOLDERS.filter(p=>content.includes(p));
+  if(left.length){ setStatus("This entry still has template placeholders — fill in your real notes before publishing. No fake commits.","err"); return; }
+
+  const btn=$("publish"); btn.disabled=true;
+  const path=`entries/${platform}/${slug}.md`;
+  try{
+    setStatus("Checking repo…","info");
+    const existing=await getFile(owner,repo,path,branch);
+    setStatus(existing?"Updating entry…":"Creating entry…","info");
+    await putFile(owner,repo,path,branch,content,
+      `${existing?"Update":"Add"} ${PLATFORMS[platform].name} writeup: ${slug}`,
+      existing?existing.sha:undefined);
+
+    // update README index
+    let indexMsg="";
+    const readme=await getFile(owner,repo,"README.md",branch);
+    if(readme){
+      const md=unb64(readme.content.replace(/\n/g,""));
+      const diff=$("difficulty").value.trim()||"—";
+      const topics=$("topics").value.trim()||"—";
+      const row=`| ${today()} | ${PLATFORMS[platform].name} | [${title}](${path}) | ${diff} | ${topics} |`;
+      const { text, ok }=insertIndexRow(md, row);
+      if(ok){
+        await putFile(owner,repo,"README.md",branch,text,`Index: ${slug}`,readme.sha);
+        indexMsg=" Index updated.";
+      } else {
+        indexMsg=" (No log table found in README — add a row manually.)";
+      }
+    }
+    const link=`https://github.com/${owner}/${repo}/blob/${branch}/${path}`;
+    setStatus(`✔ Published: ${path}.${indexMsg}\nHonest green box earned. 🟩\n${link}`,"ok");
+  }catch(e){
+    setStatus("Error: "+e.message,"err");
+  }finally{
+    btn.disabled=false;
+  }
+};
+
+updatePathHint();
+</script>
+</body>
+</html>
