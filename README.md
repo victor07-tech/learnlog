@@ -6,6 +6,8 @@
 ![Python](https://img.shields.io/badge/python-3.8+-blue.svg)
 ![Dependencies](https://img.shields.io/badge/dependencies-none-brightgreen.svg)
 
+**🔗 Live app:** https://victor07-tech.github.io/learnlog/
+
 Built by [@victor07-tech](https://github.com/victor07-tech) for people learning security and coding in public. Scaffold an entry, write your real notes, and it commits + pushes + updates the index below. **You write every word** — it just removes the git friction.
 
 ## Honest by design
@@ -15,7 +17,17 @@ It refuses to publish an entry that still contains template placeholders. No emp
 ## Two ways to use it
 
 - **CLI** — `python learnlog.py new thm blue` → write notes → `python learnlog.py publish thm blue`
-- **Web app** — open the page, paste a GitHub token once, write, click Publish.
+- **Web app** — open the [live app](https://victor07-tech.github.io/learnlog/), paste a GitHub token once, write, click Publish.
+
+## Use it yourself (any GitHub user)
+
+Your token stays in your browser and is sent only to GitHub — nobody else sees it, and your writeups go to *your* repo, not anyone else's.
+
+1. Create a fine-grained token → <https://github.com/settings/tokens?type=beta>
+   - Repository access: **Only select repositories** → your writeups repo
+   - Permissions → **Contents: Read and write**
+2. Open the [live app](https://victor07-tech.github.io/learnlog/), paste the token, click **Save**.
+3. Enter **your** owner and repo, pick a platform, write, click **Publish**.
 
 ## Supported platforms
 
