@@ -42,6 +42,7 @@ Your token stays in your browser and is sent only to GitHub — nobody else sees
 
 | Date | Platform | Title | Difficulty | Topics |
 |------|----------|-------|-----------|--------|
+| 2026-07-08 | TryHackMe | [Windows Fundamentals 3](entries/thm/windows-fundamentals-3.md) | easy | — |
 | 2026-07-06 | TryHackMe | [Blue](entries/thm/blue.md) | Easy | windows, smb, eternalblue |
 
 ## A note on etiquette
